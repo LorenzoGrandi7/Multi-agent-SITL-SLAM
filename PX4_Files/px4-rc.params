@@ -1,0 +1,10 @@
+#!/bin/sh
+# shellcheck disable=SC2154
+
+param set COM_ARM_WO_GPS 1 # Warning only when the GPS preflight check fails
+param set COM_RCL_EXCEPT 4 # RC loss ignored and failsafe not triggered in offboard mode
+param set COM_RC_IN_MODE 4 # Stick input disabled
+param set LPE_GPS_Z 5.0 # Standard deviation for GPS
+param set LPE_VIS_Z 2.0 # Standard deviation for vision
+param set COM_LOW_BAT_ACT 0 # Warning only when batter failsafe is triggered
+param set MPC_Z_P 0.1 # Proportional gain for vertical position error
