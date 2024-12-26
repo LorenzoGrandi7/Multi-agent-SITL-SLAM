@@ -1,6 +1,6 @@
 # <span style="color:green"> **Cyber-Physical Systems Programming - Documentation**</span>
 
-The main goal of this work is the following: in a Gazebo environment we need to create the instances of 2 drones, equipped with the required sensors, like a depth camera, in order to build a 3D map of the simulated environment and localize the position of the drones themselves (SLAM algorithm = Simultaneous Localization and Mapping). The tools we will employ are ROS 2 and PX4 Autopilot.
+The aim of the work is to create two quadcopters instances in a Gazebo Classic environment, equipped with the required sensors, like a depth camera, in order to build a 3D map of the simulated space and localize the position of the drones themselves (SLAM algorithm = Simultaneous Localization and Mapping). The tools we will employ are ROS2 and PX4-Autopilot.
 
 >Leonardo Bellini\
 >Lorenzo Grandi\
@@ -8,25 +8,25 @@ The main goal of this work is the following: in a Gazebo environment we need to 
 
 In the following document we'll explain all the steps required to execute a **Multiagent SITL SLAM**, based on two Iris drones equipped with a **depth camera**; the simulation will be carried out using Gazebo and Rviz2.
 
-## <span style="color:lightgreen"> **Preliminary installations: ROS 2 Humble, PX4 Autopilot and Micro XRCE-DDS**</span>
+## <span style="color:lightgreen"> **Preliminary installations: ROS2 Humble, PX4-Autopilot and Micro XRCE-DDS**</span>
 
-**Ubuntu 22.04 LTS** (Jammy Jellyfish) must be installed on the PC.
+**Ubuntu 22.04 LTS** (Jammy Jellyfish) is required.
 
-To proceed with the installation, follow the main guide within the PX4 dcumentation:
+To proceed with the installation, follow the main guide within the PX4-Autopilot dcumentation:
 
 https://docs.px4.io/main/en/ros2/user_guide.html
 
-By default, from Ubuntu 22.04, PX4 comes with the newer Gazebo version (Gazebo Harmonic). If you want, as we did, work with the older version (Gazebo Classic), please follow this guide:
+By default, from Ubuntu 22.04, PX4-Autopilot comes with the newer Gazebo version (Gazebo Harmonic). If you want, as we did, work with the older version (Gazebo Classic), please follow this guide:
 
 https://docs.px4.io/main/en/sim_gazebo_classic/
 
-## <span style="color:lightgreen"> **Single drone simulation with PX4 in Gazebo**</span>
+## <span style="color:lightgreen"> **Single drone simulation with PX4-Autopilot in Gazebo**</span>
 
 To run the basic single agent simulation, follow the guide at this link:
 
 https://docs.px4.io/main/en/ros2/user_guide.html#setup-the-agent
 
-If you installed Gazebo Classic rather than Gazebo Harmonic, replace the command starting PX4 with the ones provided at this link, depending on the vehicle you want to spawn:
+If you installed Gazebo Classic rather than Gazebo Harmonic, replace the command starting PX4-Autopilot with the ones provided at this link, depending on the vehicle you want to spawn:
 
 https://docs.px4.io/main/en/sim_gazebo_classic/#running-the-simulation
 
@@ -36,7 +36,7 @@ cd PX4_Autopilot
 make px4_sitl gazebo-classic_iris_depth_camera
 ```
 
-### **ROS2 and PX4 simulation baseline**
+### **ROS2 and PX4-Autopilot simulation baseline**
 
 The simulation is started by simply running the following commands from the shell:
 ```Shell
@@ -62,11 +62,11 @@ In order to achieve this, we must provide within the TF Tree all the transformat
 
 The scope of the **map_base_link_publ** is to provide the first transformation, from */map* to */base_link*. This operation requires to localize the drone in the environment, meaning to find its x, y, and z coordinates and orientation. These information were obtained by subscribing the */vehicle_local_position* and */vehicle_attitude* topics.
 
-Since PX4 and ROS2 use respectively ENU (East-North-Up) and NED (North-East-Down) frame conventions, we needed to apply the corresponding conversions to publish the correct */map* to */base_link* transformation(refer to https://docs.px4.io/main/en/ros2/user_guide.html#ros-2-px4-frame-conventions).
+Since PX4-Autopilot and ROS2 use respectively ENU (East-North-Up) and NED (North-East-Down) frame conventions, we needed to apply the corresponding conversions to publish the correct */map* to */base_link* transformation(refer to https://docs.px4.io/main/en/ros2/user_guide.html#ros-2-px4-frame-conventions).
 
 To provide the second transformation, from */base_link* to */camera_link* we used the **robot_state_publisher** (https://github.com/ros/robot_state_publisher/tree/humble) and **joint_state_publisher** (https://github.com/ros/joint_state_publisher/tree/ros2) ROS2 nodes: by providing the drone description through a *.urdf* file, these two nodes manage to publish all the transformations from any frame within the drone to */base_link*.
 
-The PX4 repository provides only the *.sdf* files of the vehicles, then we generate the *.urdf* file using the *pysdf* ROS package (https://github.com/andreasBihlmaier/pysdf). The result is the *iris_depth_camera.urdf* file within the *PX4_Files* folder.
+The PX4-Autopilot repository provides only the *.sdf* files of the vehicles, then we generate the *.urdf* file using the *pysdf* ROS package (https://github.com/andreasBihlmaier/pysdf). The result is the *iris_depth_camera.urdf* file within the *PX4_Files* folder.
 
 #### **PointCloud transformer**
 
@@ -79,9 +79,9 @@ Further more, we integrated in this node some other functionalities to improve t
 
 For all the pointcluds manipulations we used the *pcl_ros* ROS2 package (https://index.ros.org/p/pcl_ros/#humble-overview, https://docs.ros.org/en/humble/p/pcl_ros/index.html)
 
-## <span style="color:lightgreen"> **Multiagent simulation with PX4 in Gazebo**</span>
+## <span style="color:lightgreen"> **Multiagent simulation with PX4-Autopilot in Gazebo**</span>
 
-When using Gazebo and ROS2 for multi-agent simulations, it's essential to ensure that each vehicle has unique topic and frame names to prevent conflicts. PX4 helps manage this with specific scripts designed for multi-agent simulations. In particular:
+When using Gazebo and ROS2 for multi-agent simulations, it's essential to ensure that each vehicle has unique topic and frame names to prevent conflicts. PX4-Autopilot helps manage this with specific scripts designed for multi-agent simulations. In particular:
 - **sitl_multiple_run.sh**: this shell script takes as inputs the vehicles type, the number of entities we want to spawn and the spawning coordinates.
 - **jinja_gen.py**: this script, called by the previous one, is responsible of the *.sdf* files for all the entities by using the corresponding *.sdf.jinja* templates.
 - **.sdf.jinja** file: it is a template-based version of an *.sdf* file, that allows to embed logic and variables in a text file, turning what normally is a static file into a dynamic one. In our case, the properties that must vary between vehicles are replaced by variables, with values passed as parameters by the **jinja_gen.py** script.
@@ -90,7 +90,7 @@ This partially helped us, but it was not sufficient for the following reasons:
 - only some models come with the corresponding *sdf.jinja* template, and our iris drone with depth camera is not one of those;
 - the previous scripts only account for different topics namespaces and proper MAVLink communication, but not for differentiated frames naming that is crucial for the camera's data publication.
 
-Consequently we managed to write the *iris_depth_camera.sdf.jinja* template, which provides differentiated frames and topics naming for the camera, and we integrated these additional features also in the *sitl_multiple_run.sh* and *jinja_gen.py* in order to use the same workflow as in default PX4.
+Consequently we managed to write the *iris_depth_camera.sdf.jinja* template, which provides differentiated frames and topics naming for the camera, and we integrated these additional features also in the *sitl_multiple_run.sh* and *jinja_gen.py* in order to use the same workflow as in default PX4-Autopilot.
 
 In addition, we extended all the previously discussed ROS2 nodes to a multiagent context. This led us to a fully working simulation, with two spawned drones and the corresponding cameras' readings published on the relative topics.
 
@@ -116,7 +116,7 @@ We could control the movement also taking advantage of QGroundControl (https://d
 
 In our simulation is important to set some specific parameters before starting, in particular we need to deactivate the Manual Control Input setting required for safety reasons, in order to avoid to incurr into the Failsafe Mode. To do so we have to set  COM_RCL_EXCEPT = 4.
 
-To specify these parameters there are many approaches, like using the px4 MAVLink Commands or changing manually the values in the PX4 folder:
+To specify these parameters there are many approaches, like using the px4 MAVLink Commands or changing manually the values in the PX4-Autopilot folder:
 
 go to **PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/** and add these lines to the file **px4-rc.params**:
 
@@ -132,7 +132,7 @@ param set MPC_Z_P 0.1       # Proportional gain for vertical position error
 
 The simulation carried out in Gazebo returned initially an unstable vertical position and acceleration, leading to various problems when trying to control the drones in offboard mode: when the system doesn't have a stable height estimation it doesn't allow to arm the drone and navigate. To reduce this observed oscillation we worked on the .sdf.jinja file responsible for generating the drones: in particular we increased the inertia of the components, added a small value of dampening to prevent vibrations and finally reduced the noise of both the accelerometer and gyroscope, almost completely nulling the vertical bouncing the drones had; in addition, when the registered position of the drones indicates a point below ground, the position is overwritten with a 0 value, just to clean the Rviz visualization.
 
-Then the PX4 folder needs to be compiled to make the changes effective.
+Then the PX4-Autopilot folder needs to be compiled to make the changes effective.
 
 Once this is done we can proceed by setting the offboard mode and arming the drones in a separate terminal. The execution of this process cannot be inserted into the main launch file, because it would raise an error, not seeing all the topics and resources needed.
 
